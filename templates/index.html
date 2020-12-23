@@ -10,8 +10,21 @@
 </head>
 
 <body>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://media.twiliocdn.com/sdk/js/sync/releases/0.12.4/twilio-sync.min.js"></script>
+    <h2>Flask & Twilio Online Presentation</h2>
+    <form method="post">
+        <label for="username">Name: </label>
+        <input type="text" name="username" id="username" placeholder="Your Name">
+        <label for="password">Password (Optional): </label>
+        <input type="password" name="password" id="password" placeholder="Only for Presenter">
+        <button id="join">Join the Presentation</button>
+    </form>
+    <p id="status">Disconnected</p>
+    <div id="container">
+        <div id="screen"></div>
+        <div id="presenter"></div>
+    </div>
+
+    <script src="//media.twiliocdn.com/sdk/js/video/releases/2.3.0/twilio-video.min.js"></script>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 
