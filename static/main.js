@@ -16,12 +16,19 @@ function displayPresenterVideo() {
 };
 
 function displayPresenterScreen() {
-    navigator.mediaDevices.getDisplayMedia().then(stream => {
-        screenTrack = new Twilio.Viddeo.LocalVideoTrack(stream.getTracks()[0]);
+    navigator.mediaDevices.getDisplayMedia({
+        video: {
+            width: 1280,
+            height: 720
+        }
+    }).then(stream => {
+        screenTrack = new Twilio.Video.LocalVideoTrack(stream.getTracks()[0]);
         room.localParticipant.publishTrack(screenTrack);
-        screenTrack.mediaStreamTrack.onended = () => {displayPresenterScreen() };
-    }).catch(() => {
+        screen.appendChild(screenTrack.attach());
+        screenTrack.mediaStreamTrack.onended = () => { displayPresenterScreen() };
+    }).catch((error) => {
         alert('Could not share the screen.');
+        console.error(`Unable to share screen: ${error.message}`);
     });
 };
 
@@ -39,8 +46,9 @@ function connectButtonHandler(event) {
         connect(username, password).then(() => {
             connectButton.innerHTML = 'Leave';
             connectButton.disabled = false;
-        }).catch(() => {
+        }).catch(error => {
             alert('Connection failed.');
+            console.error(`Unable to connect: ${error.message}`);
             connectButton.innerHTML = 'Join';
             connectButton.disabled = false;
         });
@@ -59,22 +67,25 @@ function connect(username, password) {
             },
             body: JSON.stringify({'username': username, 'password': password})
         }).then(res => res.json()).then(data => {
-            // if (data.presenter != '') {
-            //     presenterName = data.presenter;
-            //     displayPresenterVideo();
-            //     displayPresenterScreen();
-            // }
+            presenterName = data.presenter;
             console.log('start connect to twilio', data);
             return Twilio.Video.connect(data.token);
         }).then(_room => {
             room = _room;
-            console.log('join room', room, data);
+            console.log('join room', room, presenterName);
+            if (presenterName != '') {
+                displayPresenterVideo();
+                displayPresenterScreen();
+                // alert('Settle down everyone, the presentation is about to start!');
+            }
+            room.participants.forEach(participantConnected);
             room.on('participantConnected', participantConnected);
             room.on('partcipantDisconnected', participantDisconnected);
             connected = true;
             updateParticipantCount();
             resolve();
-        }).catch(() => {
+        }).catch(error => {
+            console.error(`Unable to connect to Room: ${error.message}`);
             reject();
         });
     });
@@ -97,11 +108,6 @@ function updateParticipantCount() {
 
 function participantConnected(participant) {
     console.log('new user', participant.identity);
-    if (participant.identity == presenterName) {
-        displayPresenterVideo();
-        displayPresenterScreen();
-        alert('Settle down everyone, the presentation is about to start!');
-    }
     updateParticipantCount();
 };
 
