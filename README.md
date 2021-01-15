@@ -1,8 +1,6 @@
 # Twilio Presentation
 
-This is a simple collaborative online presentation application build with Flask and Twilio Video API.
-
-![](demo.gif)
+This is a simple online presentation application build with Flask and Twilio Video API.
 
 ## Installation
 
@@ -15,11 +13,11 @@ $ . venv/bin/activate  # use "venv\Scripts\activate" on Windows
 (venv) $ pip install -r requirements.txt
 ```
 
-Rename the `.env.example` to `.env`, fill the variables in it (You will need to register a free [Twilio account](http://www.twilio.com/referral/w6qBg0)).
+Rename the `.env.example` to `.env`, fill the credential variables in it (You will need to register a free [Twilio account](http://www.twilio.com/referral/w6qBg0)).
 
 Run the application with:
 ```
 (venv) $ flask run
 ```
 
-Then open http://localhost:5000 on two or more tabs to test.
+Now open http://localhost:5000, enter the username and the default password `test` to start the presentation, then open more tabs to test.
