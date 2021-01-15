@@ -1,17 +1,50 @@
-const video = document.getElementById('presenter');
-const screen = document.getElementById('screen');
+const videoContainer = document.getElementById('presenter');
+const screenContainer = document.getElementById('screen');
 const usernameInput = document.getElementById('username');
 const passwordInput = document.getElementById('password');
+const passwordLabel = document.querySelector('label[for="password"]');
 const connectButton = document.getElementById('connect');
 const status = document.getElementById('status');
 let connected = false;
 let screenTrack;
 let presenterName;
+let isPresenter;
 let room;
+let screenTrackName;
+
+function getPresenterInfo() {
+    fetch('/presenter', {
+        method: 'GET'
+    }).then(res => res.json()).then(data => {
+        console.log(`presenter name: ${data.username}`);
+        console.log(`presenter screen track name: ${data.screen}`);
+        if (data.username) {
+            presenterName = data.username;
+            screenTrackName = data.screen;
+            passwordInput.remove();
+            passwordLabel.remove();
+        }
+    }).catch(error => {
+        console.log(error.message);
+    })
+};
+
+function setScreenTrackName(screenName) {
+    screenTrackName = screenName;
+    fetch('/screen', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({'screen': screenName}) 
+    }).catch(error => {
+        console.log(error.message);
+    })
+}
 
 function displayPresenterVideo() {
     Twilio.Video.createLocalVideoTrack().then(track => {
-        video.appendChild(track.attach());
+        videoContainer.appendChild(track.attach());
     });
 };
 
@@ -24,7 +57,8 @@ function displayPresenterScreen() {
     }).then(stream => {
         screenTrack = new Twilio.Video.LocalVideoTrack(stream.getTracks()[0]);
         room.localParticipant.publishTrack(screenTrack);
-        screen.appendChild(screenTrack.attach());
+        screenContainer.appendChild(screenTrack.attach());
+        setScreenTrackName(screenTrack.name);
         screenTrack.mediaStreamTrack.onended = () => { displayPresenterScreen() };
     }).catch((error) => {
         alert('Could not share the screen.');
@@ -67,20 +101,33 @@ function connect(username, password) {
             },
             body: JSON.stringify({'username': username, 'password': password})
         }).then(res => res.json()).then(data => {
-            presenterName = data.presenter;
-            console.log('start connect to twilio', data);
+            if (data.is_presenter) {
+                isPresenter = true;
+            }
             return Twilio.Video.connect(data.token);
         }).then(_room => {
             room = _room;
-            console.log('join room', room, presenterName);
-            if (presenterName != '') {
+            if (isPresenter) {
                 displayPresenterVideo();
                 displayPresenterScreen();
-                // alert('Settle down everyone, the presentation is about to start!');
+            } else {
+                room.localParticipant.audioTracks.forEach(publication => {
+                    publication.track.disable();
+                });
+                room.localParticipant.videoTracks.forEach(publication => {
+                    publication.track.stop();
+                    publication.unpublish();
+                });
+                room.participants.forEach(participant => {
+                    // display presenter's tracks for new participant
+                    if (participant.identity == presenterName) {
+                        participant.on('trackSubscribed', track => trackSubscribed(track));
+                        participant.on('trackUnsubscribed', trackUnsubscribed);
+                    }
+                });
             }
-            room.participants.forEach(participantConnected);
             room.on('participantConnected', participantConnected);
-            room.on('partcipantDisconnected', participantDisconnected);
+            room.on('participantDisconnected', participantDisconnected);
             connected = true;
             updateParticipantCount();
             resolve();
@@ -92,7 +139,7 @@ function connect(username, password) {
     return promise;
 };
 
-function disconnect () {
+function disconnect() {
     room.disconnect();
     connected = false;
     updateParticipantCount();
@@ -107,18 +154,35 @@ function updateParticipantCount() {
 };
 
 function participantConnected(participant) {
-    console.log('new user', participant.identity);
+    console.log(`${participant.identity} just joined the room.`)
     updateParticipantCount();
 };
 
 function participantDisconnected(participant) {
+    console.log(`${participant.identity} left the room.`)
     if (participant.identity == presenterName) {
-        room.localParticipant.unpublishTrack(screenTrack);
-        screenTrack.stop();
-        screenTrack = null;
-        alert('The presentation is over, goodbye!');
+        console.log('The presentation is over.')
+        fetch('/end', {
+            method: 'POST',
+        }).catch(error => {
+            console.log(error.message);
+        })
     }
     updateParticipantCount();
 };
 
+function trackSubscribed(track) {
+    console.log(`track subscript.`, track.name)
+    if (track.name == screenTrackName) {
+        screenContainer.appendChild(track.attach());
+    } else {
+        videoContainer.appendChild(track.attach());
+    }
+};
+
+function trackUnsubscribed(track) {
+    track.detach().forEach(element => element.remove());
+};
+
 connectButton.addEventListener('click', connectButtonHandler);
+getPresenterInfo();

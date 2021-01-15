@@ -6,6 +6,11 @@ from twilio.jwt.access_token.grants import VideoGrant
 
 app = Flask(__name__)
 
+presenter_data = {
+    'username': '',
+    'screen': ''
+}
+
 
 @app.route('/')
 def index():
@@ -21,9 +26,10 @@ def login():
         abort(401)
 
     if password == 'test':
-        presenter = username
+        presenter_data['username'] = username
+        is_presenter = True
     else:
-        presenter = ''
+        is_presenter = False
 
     # get credentials from environment variables
     account_sid = os.getenv('TWILIO_ACCOUNT_SID')
@@ -36,4 +42,22 @@ def login():
     # create a Video grant and add to token
     video_grant = VideoGrant(room='My Presentation')
     token.add_grant(video_grant)
-    return jsonify(token=token.to_jwt(), presenter=presenter)
+    return jsonify(token=token.to_jwt(), is_presenter=is_presenter)
+
+
+@app.route('/presenter')
+def get_presenter_info():
+    return jsonify(username=presenter_data['username'], screen=presenter_data['screen'])
+
+
+@app.route('/screen', methods=['POST'])
+def set_screen_track_name():
+    presenter_data['screen'] = request.json.get('screen')
+    return '', 204
+
+
+@app.route('/end', methods=['POST'])
+def end_presentation():
+    presenter_data['username'] = ''
+    presenter_data['screen'] = ''
+    return '', 204
