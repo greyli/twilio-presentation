@@ -16,8 +16,6 @@ function getPresenterInfo() {
     fetch('/presenter', {
         method: 'GET'
     }).then(res => res.json()).then(data => {
-        console.log(`presenter name: ${data.username}`);
-        console.log(`presenter screen track name: ${data.screen}`);
         if (data.username) {
             presenterName = data.username;
             screenTrackName = data.screen;
@@ -26,7 +24,7 @@ function getPresenterInfo() {
         }
     }).catch(error => {
         console.log(error.message);
-    })
+    });
 };
 
 function setScreenTrackName(screenName) {
@@ -39,8 +37,8 @@ function setScreenTrackName(screenName) {
         body: JSON.stringify({'screen': screenName}) 
     }).catch(error => {
         console.log(error.message);
-    })
-}
+    });
+};
 
 function displayPresenterVideo() {
     Twilio.Video.createLocalVideoTrack().then(track => {
@@ -154,14 +152,14 @@ function updateParticipantCount() {
 };
 
 function participantConnected(participant) {
-    console.log(`${participant.identity} just joined the room.`)
+    console.log(`${participant.identity} just joined the room.`);
     updateParticipantCount();
 };
 
 function participantDisconnected(participant) {
-    console.log(`${participant.identity} left the room.`)
+    console.log(`${participant.identity} left the room.`);
     if (participant.identity == presenterName) {
-        console.log('The presentation is over.')
+        console.log('The presentation is over.');
         fetch('/end', {
             method: 'POST',
         }).catch(error => {
@@ -172,7 +170,6 @@ function participantDisconnected(participant) {
 };
 
 function trackSubscribed(track) {
-    console.log(`track subscript.`, track.name)
     if (track.name == screenTrackName) {
         screenContainer.appendChild(track.attach());
     } else {
