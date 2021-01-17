@@ -141,6 +141,27 @@ function disconnect() {
     room.disconnect()
     connected = false
     updateParticipantCount()
+    if (isPresenter) {
+        endPresentation()
+    }
+}
+
+function endPresentation() {
+    console.log('The presentation is over.')
+    fetch('/end', {
+        method: 'POST',
+    }).catch(error => {
+        console.log(error.message)
+    })
+    // reset video preview
+    videoTrackElement = screenContainer.getElementsByTagName('video')[0]
+    videoContainer.removeChild(videoTrackElement)
+    // unpublish screen track
+    room.localParticipant.unpublishTrack(screenTrack)
+    screenTrack.stop()
+    screenTrack = null
+    screenTrackElement = screenContainer.getElementsByTagName('video')[0]
+    screenContainer.removeChild(screenTrackElement)    
 }
 
 function updateParticipantCount() {
@@ -158,14 +179,6 @@ function participantConnected(participant) {
 
 function participantDisconnected(participant) {
     console.log(`${participant.identity} left the room.`)
-    if (participant.identity == presenterName) {
-        console.log('The presentation is over.')
-        fetch('/end', {
-            method: 'POST',
-        }).catch(error => {
-            console.log(error.message)
-        })
-    }
     updateParticipantCount()
 }
 
