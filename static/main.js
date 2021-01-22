@@ -1,15 +1,15 @@
-const videoContainer = document.getElementById('presenter')
-const screenContainer = document.getElementById('screen')
 const usernameInput = document.getElementById('username')
 const passwordInput = document.getElementById('password')
 const passwordLabel = document.querySelector('label[for="password"]')
 const connectButton = document.getElementById('connect')
 const status = document.getElementById('status')
+const screenContainer = document.getElementById('screen')
+const videoContainer = document.getElementById('presenter')
 let connected = false
+let room
+let isPresenter
 let screenTrack
 let presenterName
-let isPresenter
-let room
 let screenTrackName
 
 function getPresenterInfo() {
