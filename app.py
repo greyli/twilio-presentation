@@ -25,7 +25,7 @@ def login():
     if not username:
         abort(401)
 
-    if password == 'test':
+    if not presenter_data['username'] and password == 'test':
         presenter_data['username'] = username
         is_presenter = True
     else:
