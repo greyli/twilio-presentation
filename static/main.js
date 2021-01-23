@@ -194,5 +194,11 @@ function trackUnsubscribed(track) {
     track.detach().forEach(element => element.remove())
 }
 
+window.addEventListener('beforeunload', () => {
+    if (isPresenter) {
+        endPresentation()
+    }    
+})
+
 connectButton.addEventListener('click', connectButtonHandler)
 getPresenterInfo()
