@@ -175,6 +175,9 @@ function participantConnected(participant) {
 
 function participantDisconnected(participant) {
     console.log(`${participant.identity} left the room.`)
+    if (participant.identity == presenterName) {
+        alert('The presentation is over.')
+    }
     updateParticipantCount()
 }
 
@@ -193,7 +196,7 @@ function trackUnsubscribed(track) {
 window.addEventListener('beforeunload', () => {
     if (isPresenter) {
         endPresentation()
-    }    
+    }
 })
 
 connectButton.addEventListener('click', connectButtonHandler)
