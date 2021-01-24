@@ -101,21 +101,17 @@ function connect(username, password) {
         }).then(res => res.json()).then(data => {
             if (data.is_presenter) {
                 isPresenter = true
+                return Twilio.Video.connect(data.token)
+            } else {
+                // disable audio and video for participants
+                return Twilio.Video.connect(data.token, {audio: false, video: false})
             }
-            return Twilio.Video.connect(data.token)
         }).then(_room => {
             room = _room
             if (isPresenter) {
                 displayPresenterVideo()
                 displayPresenterScreen()
             } else {
-                room.localParticipant.audioTracks.forEach(publication => {
-                    publication.track.disable()
-                })
-                room.localParticipant.videoTracks.forEach(publication => {
-                    publication.track.stop()
-                    publication.unpublish()
-                })
                 room.participants.forEach(participant => {
                     // display presenter's tracks for new participant
                     if (participant.identity == presenterName) {
