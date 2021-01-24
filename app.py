@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, request, jsonify, render_template, abort
+from flask import Flask, request, render_template, abort
 from twilio.jwt.access_token import AccessToken
 from twilio.jwt.access_token.grants import VideoGrant
 
@@ -42,12 +42,12 @@ def login():
     # create a Video grant and add to token
     video_grant = VideoGrant(room='My Presentation')
     token.add_grant(video_grant)
-    return jsonify(token=token.to_jwt(), is_presenter=is_presenter)
+    return {'token': token.to_jwt(), 'is_presenter': is_presenter}
 
 
 @app.route('/presenter')
 def get_presenter_info():
-    return jsonify(username=presenter_data['username'], screen=presenter_data['screen'])
+    return presenter_data
 
 
 @app.route('/screen', methods=['POST'])
