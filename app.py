@@ -37,7 +37,6 @@ def login():
     api_secret = os.getenv('TWILIO_API_SECRET')
 
     # create access token with credentials
-    print(account_sid, api_key, api_secret, username)
     token = AccessToken(account_sid, api_key, api_secret, identity=username)
     # create a Video grant and add to token
     video_grant = VideoGrant(room='My Presentation')
