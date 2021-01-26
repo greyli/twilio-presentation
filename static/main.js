@@ -56,8 +56,8 @@ function displayPresenterScreen() {
         screenTrack = new Twilio.Video.LocalVideoTrack(stream.getTracks()[0])
         room.localParticipant.publishTrack(screenTrack)
         screenContainer.appendChild(screenTrack.attach())
-        setScreenTrackName(screenTrack.name)
         screenTrack.mediaStreamTrack.onended = () => { displayPresenterScreen() }
+        setScreenTrackName(screenTrack.name)
     }).catch((error) => {
         alert('Could not share the screen.')
         console.error(`Unable to share screen: ${error.message}`)
@@ -122,8 +122,8 @@ function connect(username, password) {
             }
             room.on('participantConnected', participantConnected)
             room.on('participantDisconnected', participantDisconnected)
-            connected = true
             updateParticipantCount()
+            connected = true
             resolve()
         }).catch(error => {
             console.error(`Unable to connect to Room: ${error.message}`)
@@ -135,8 +135,8 @@ function connect(username, password) {
 
 function disconnect() {
     room.disconnect()
-    connected = false
     updateParticipantCount()
+    connected = false
     if (isPresenter) {
         endPresentation()
     }
