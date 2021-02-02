@@ -1,10 +1,31 @@
 const connectButton = document.getElementById('connect')
 const status = document.getElementById('status')
-const screenContainer = document.getElementById('screen')
-const videoContainer = document.getElementById('presenter')
+const videoContainer = document.getElementById('video')
 let connected = false
 let room
 let screenTrack
+
+function displayPresenterVideo() {
+    Twilio.Video.createLocalVideoTrack().then(track => {
+        videoContainer.appendChild(track.attach())
+    })
+}
+
+function publishPresenterScreen() {
+    navigator.mediaDevices.getDisplayMedia({
+        video: {
+            width: 1280,
+            height: 720
+        }
+    }).then(stream => {
+        screenTrack = new Twilio.Video.LocalVideoTrack(stream.getTracks()[0], {name: 'screen'})
+        room.localParticipant.publishTrack(screenTrack)
+        screenTrack.mediaStreamTrack.onended = connectButtonHandler
+    }).catch((error) => {
+        alert('Could not share the screen.')
+        console.error(`Unable to share screen: ${error.message}`)
+    })
+}
 
 function connectButtonHandler(event) {
     event.preventDefault()
@@ -12,27 +33,27 @@ function connectButtonHandler(event) {
         connectButton.disabled = true
         connectButton.innerHTML = 'Connecting...'
         connect().then(() => {
-            connectButton.innerHTML = 'Leave'
+            connectButton.innerHTML = 'Stop Presentation'
             connectButton.disabled = false
         }).catch(error => {
             alert('Connection failed.')
             console.error(`Unable to connect: ${error.message}`)
-            connectButton.innerHTML = 'Join'
+            connectButton.innerHTML = 'Start Presenting!'
             connectButton.disabled = false
         })
     } else {
         disconnect()
-        connectButton.innerHTML = 'Join'
+        connectButton.innerHTML = 'Start Presenting!'
     }
 }
 
 function connect() {
     let promise = new Promise((resolve, reject) => {
-        fetch('/token', {method: 'POST'}).then(res => res.json()).then(data => {
-            return Twilio.Video.connect(data.token, {audio: false, video: false})
+        fetch('/token?present=true', {method: 'POST'}).then(res => res.json()).then(data => {
+            return Twilio.Video.connect(data.token)
         }).then(_room => {
             room = _room
-            room.participants.forEach(participantConnected)
+            publishPresenterScreen()
             room.on('participantConnected', participantConnected)
             room.on('participantDisconnected', participantDisconnected)
             connected = true
@@ -50,6 +71,15 @@ function disconnect() {
     room.disconnect()
     connected = false
     updateParticipantCount()
+    endPresentation()
+}
+
+function endPresentation() {
+    console.log('The presentation is over.')
+    // unpublish screen track
+    room.localParticipant.unpublishTrack(screenTrack)
+    screenTrack.stop()
+    screenTrack = null
 }
 
 function updateParticipantCount() {
@@ -62,11 +92,6 @@ function updateParticipantCount() {
 
 function participantConnected(participant) {
     console.log(`${participant.identity} just joined the room.`)
-    // display presenter's tracks for new participant
-    if (participant.identity == 'presenter') {
-        participant.on('trackSubscribed', track => trackSubscribed(track))
-        participant.on('trackUnsubscribed', trackUnsubscribed)
-    }
     updateParticipantCount()
 }
 
@@ -75,22 +100,9 @@ function participantDisconnected(participant) {
     updateParticipantCount()
 }
 
-function trackSubscribed(track) {
-    if (track.name == 'screen') {
-        screenContainer.appendChild(track.attach())
-    } else {
-        videoContainer.appendChild(track.attach())
-    }
-}
-
-function trackUnsubscribed(track) {
-    track.detach().forEach(element => element.remove())
-}
-
 window.addEventListener('beforeunload', () => {
-    if (isPresenter) {
-        endPresentation()
-    }
+    endPresentation()
 })
 
+displayPresenterVideo();
 connectButton.addEventListener('click', connectButtonHandler)
