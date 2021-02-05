@@ -1,7 +1,7 @@
 import os
 import uuid
 
-from flask import Flask, request, render_template, abort
+from flask import Flask, request, render_template
 from twilio.jwt.access_token import AccessToken
 from twilio.jwt.access_token.grants import VideoGrant
 from twilio.rest import Client
@@ -12,6 +12,7 @@ app = Flask(__name__)
 account_sid = os.getenv('TWILIO_ACCOUNT_SID')
 api_key = os.getenv('TWILIO_API_KEY')
 api_secret = os.getenv('TWILIO_API_SECRET')
+
 room_name = 'My Presentation'
 
 client = Client(api_key, api_secret)

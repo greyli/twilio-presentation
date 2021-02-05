@@ -4,7 +4,6 @@ const screenContainer = document.getElementById('screen')
 const videoContainer = document.getElementById('presenter')
 let connected = false
 let room
-let screenTrack
 let username
 
 function connectButtonHandler(event) {
@@ -100,11 +99,5 @@ function trackSubscribed(track) {
 function trackUnsubscribed(track) {
     track.detach().forEach(element => element.remove())
 }
-
-window.addEventListener('beforeunload', () => {
-    if (isPresenter) {
-        endPresentation()
-    }
-})
 
 connectButton.addEventListener('click', connectButtonHandler)

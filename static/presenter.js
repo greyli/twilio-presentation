@@ -113,5 +113,5 @@ window.addEventListener('beforeunload', () => {
     endPresentation()
 })
 
-displayPresenterVideo();
+displayPresenterVideo()
 connectButton.addEventListener('click', connectButtonHandler)
