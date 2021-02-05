@@ -47,12 +47,21 @@ function connectButtonHandler(event) {
     }
 }
 
+function setSubscribeRule(username) {
+    fetch(`/set-rule?username=${username}`, {method: 'POST'}).catch(error => {
+        console.error(`Unable to set subscribe rule: ${error.message}`)
+    })    
+}
+
 function connect() {
     let promise = new Promise((resolve, reject) => {
         fetch('/token?present=true', {method: 'POST'}).then(res => res.json()).then(data => {
-            return Twilio.Video.connect(data.token)
+            return Twilio.Video.connect(data.token, {
+                automaticSubscription: false
+            })
         }).then(_room => {
             room = _room
+            setSubscribeRule(username='presenter')
             publishPresenterScreen()
             room.on('participantConnected', participantConnected)
             room.on('participantDisconnected', participantDisconnected)
