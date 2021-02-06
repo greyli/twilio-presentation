@@ -1,12 +1,13 @@
 import os
 import uuid
 
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, session
 from twilio.jwt.access_token import AccessToken
 from twilio.jwt.access_token.grants import VideoGrant
 from twilio.rest import Client
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev')
 
 # get credentials from environment variables
 account_sid = os.getenv('TWILIO_ACCOUNT_SID')
@@ -22,7 +23,7 @@ client = Client(api_key, api_secret)
 def index():
     return render_template('index.html')
 
-
+ 
 @app.route('/present')
 def present():
     return render_template('presenter.html')
@@ -34,6 +35,7 @@ def login():
         username = 'presenter'
     else:
         username = uuid.uuid4().hex
+    session['username'] = username
 
     # create access token with credentials
     token = AccessToken(account_sid, api_key, api_secret, identity=username)
@@ -43,9 +45,9 @@ def login():
     return {'token': token.to_jwt(), 'username': username}
 
 
-@app.route('/set-rule', methods=['POST'])
+@app.route('/subscribe', methods=['POST'])
 def set_subscribe_rule():
-    username = request.args.get('username')
+    username = session['username']
     if username == 'presenter':
         client.video.rooms(room_name).participants.get(username)\
         .subscribe_rules.update(

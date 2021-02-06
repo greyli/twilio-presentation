@@ -47,8 +47,8 @@ function connectButtonHandler(event) {
     }
 }
 
-function setSubscribeRule(username) {
-    fetch(`/set-rule?username=${username}`, {method: 'POST'}).catch(error => {
+function subscribe() {
+    fetch('/subscribe', {method: 'POST'}).catch(error => {
         console.error(`Unable to set subscribe rule: ${error.message}`)
     })    
 }
@@ -61,7 +61,7 @@ function connect() {
             })
         }).then(_room => {
             room = _room
-            setSubscribeRule(username='presenter')
+            subscribe()
             publishPresenterScreen()
             room.on('participantConnected', participantConnected)
             room.on('participantDisconnected', participantDisconnected)

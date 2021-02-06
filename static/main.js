@@ -4,7 +4,6 @@ const screenContainer = document.getElementById('screen')
 const videoContainer = document.getElementById('presenter')
 let connected = false
 let room
-let username
 
 function connectButtonHandler(event) {
     event.preventDefault()
@@ -26,8 +25,8 @@ function connectButtonHandler(event) {
     }
 }
 
-function setSubscribeRule(username) {
-    fetch(`/set-rule?username=${username}`, {method: 'POST'}).catch(error => {
+function subscribe() {
+    fetch('/subscribe', {method: 'POST'}).catch(error => {
         console.error(`Unable to set subscribe rule: ${error.message}`)
     })    
 }
@@ -36,7 +35,6 @@ function setSubscribeRule(username) {
 function connect() {
     let promise = new Promise((resolve, reject) => {
         fetch('/token', {method: 'POST'}).then(res => res.json()).then(data => {
-            username = data.username
             return Twilio.Video.connect(data.token, {
                 automaticSubscription: false,
                 audio: false,
@@ -44,7 +42,7 @@ function connect() {
             })
         }).then(_room => {
             room = _room
-            setSubscribeRule(username)
+            subscribe()
             room.participants.forEach(participantConnected)
             room.on('participantConnected', participantConnected)
             room.on('participantDisconnected', participantDisconnected)
