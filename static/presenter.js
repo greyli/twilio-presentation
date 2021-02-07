@@ -47,12 +47,6 @@ function connectButtonHandler(event) {
     }
 }
 
-function subscribe() {
-    fetch('/subscribe', {method: 'POST'}).catch(error => {
-        console.error(`Unable to set subscribe rule: ${error.message}`)
-    })    
-}
-
 function connect() {
     let promise = new Promise((resolve, reject) => {
         fetch('/token?present=true', {method: 'POST'}).then(res => res.json()).then(data => {
@@ -61,7 +55,6 @@ function connect() {
             })
         }).then(_room => {
             room = _room
-            subscribe()
             publishPresenterScreen()
             room.on('participantConnected', participantConnected)
             room.on('participantDisconnected', participantDisconnected)

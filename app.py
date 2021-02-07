@@ -42,24 +42,16 @@ def login():
     # create a Video grant and add to token
     video_grant = VideoGrant(room=room_name)
     token.add_grant(video_grant)
-    return {'token': token.to_jwt(), 'username': username}
+    return {'token': token.to_jwt()}
 
 
 @app.route('/subscribe', methods=['POST'])
 def set_subscribe_rule():
     username = session['username']
-    if username == 'presenter':
-        client.video.rooms(room_name).participants.get(username)\
-        .subscribe_rules.update(
-            rules = [
-                {'type': 'exclude', 'all': True}
-            ]
-        )
-    else:
-        client.video.rooms(room_name).participants.get(username)\
-        .subscribe_rules.update(
-            rules = [
-                {'type': 'include', 'publisher': 'presenter'}
-            ]
-        )
+    client.video.rooms(room_name).participants.get(username)\
+    .subscribe_rules.update(
+        rules = [
+            {'type': 'include', 'publisher': 'presenter'}
+        ]
+    )
     return '', 204
