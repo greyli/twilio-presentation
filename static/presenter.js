@@ -59,7 +59,6 @@ function connect() {
             room.on('participantConnected', participantConnected)
             room.on('participantDisconnected', participantDisconnected)
             connected = true
-            updateParticipantCount()
             resolve()
         }).catch(error => {
             console.error(`Unable to connect to Room: ${error.message}`)
@@ -72,7 +71,6 @@ function connect() {
 function disconnect() {
     room.disconnect()
     connected = false
-    updateParticipantCount()
     endPresentation()
 }
 
