@@ -31,7 +31,6 @@ function subscribe() {
     })    
 }
 
-
 function connect() {
     let promise = new Promise((resolve, reject) => {
         fetch('/token', {method: 'POST'}).then(res => res.json()).then(data => {
